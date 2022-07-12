@@ -8,4 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#define DEBUG_GC_STRESS
+#define DEBUG_GC_LOG
+
 #endif

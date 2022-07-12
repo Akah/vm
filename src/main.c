@@ -1,7 +1,7 @@
 #include "common.h"
-#include "chunk.h"
-#include "debug.h"
-#include "vm.h"
+#include "vm/chunk.h"
+#include "vm/debug.h"
+#include "vm/vm.h"
 #include <stdio.h>
 
 /* static char* read_file(const char* path) { */

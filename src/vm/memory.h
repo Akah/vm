@@ -1,7 +1,7 @@
 #ifndef memory_h
 #define memory_h
 
-#include "common.h"
+#include "../common.h"
 
 #define GROW_CAPACITY(capacity) \
     ((capacity) < 8 ? 8 : (capacity) * 2)
@@ -13,5 +13,7 @@
     reallocate(pointer, sizeof(type) * (old_count), 0)
 
 void* reallocate(void* pointer, size_t old_size, size_t new_size);
+
+void collect_garbage();
 
 #endif
