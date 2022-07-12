@@ -4,14 +4,14 @@ OBJDIRS := $(patsubst %,$(OBJDIR)/%, $(DIRS))
 OBJS	:= $(patsubst %.c,$(OBJDIR)/%.o,$(shell find * -type f -name '*.c'))
 TARG	:= lisp
 
-WARN	:= -Wall -Wswitch-enum # -Wextra 
+WARN	:= -Wall -Wswitch-enum # -Wextra
 
 CFLAGS	+= -g -std=gnu99
 #CFLAGS	+= -Dtime="\"$(shell date --utc +%Y-%m-%dT%H:%M:%SZ)\""
 #CFLAGS  += -Dbuild="\"$(shell uname -svrpo)\""
 
 objdirs:
-	mkdir -p $(OBJDIRS)
+	mkdir -p objects/ $(OBJDIRS)
 
 $(OBJDIR)/%.o: %.c objdirs
 	$(CC) $(CFLAGS) $(WARN) -c -o $@ $<
