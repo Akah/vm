@@ -2,7 +2,8 @@
 #include "vm/chunk.h"
 #include "vm/debug.h"
 #include "vm/vm.h"
-#include <stdio.h>
+#include "compiler/compiler.h"
+#include "compiler/parser.h"
 
 /* static char* read_file(const char* path) { */
 /*     FILE* file = fopen(path, "rb"); */
@@ -55,58 +56,9 @@
 /* } */
 
 int main(int argc, const char* argv[]) {
-    vm_init();
-    Chunk chunk;
-    init_chunk(&chunk);
+    char* source = "(+ 1 1)";
 
-    // true   ->  420
-    // false  ->   69
+    compile(source);
 
-    int constant;
-
-    constant = add_constant(&chunk, 1);
-    write_chunk(&chunk, OP_CONSTANT, 123);
-    write_chunk(&chunk, constant, 123);
-
-    constant = add_constant(&chunk, 2);
-    write_chunk(&chunk, OP_CONSTANT, 123);
-    write_chunk(&chunk, constant, 123);
-
-    write_chunk(&chunk, OP_LESS, 123);
-
-    constant = add_constant(&chunk, 11);
-    write_chunk(&chunk, OP_JUMP_NOT_ZERO, 123);
-    write_chunk(&chunk, constant, 123);
-
-
-    constant = add_constant(&chunk, 69);
-    write_chunk(&chunk, OP_CONSTANT, 123);
-    write_chunk(&chunk, constant, 123);
-
-    constant = add_constant(&chunk, 13);
-    write_chunk(&chunk, OP_JUMP, 123);
-    write_chunk(&chunk, constant, 123);
-
-
-    constant = add_constant(&chunk, 420);
-    write_chunk(&chunk, OP_CONSTANT, 123);
-    write_chunk(&chunk, constant, 123);
-
-    constant = add_constant(&chunk, 1);
-    write_chunk(&chunk, OP_CONSTANT, 123);
-    write_chunk(&chunk, constant, 123);
-
-    write_chunk(&chunk, OP_ADD, 123);
-
-    write_chunk(&chunk, OP_RETURN, 123);
-
-    disassemble_chunk(&chunk, "test");
-
-    InterpretResult result = interpret(&chunk);
-
-    printf("%s\n", InterpretResult_to_string(result));
-
-    free_chunk(&chunk);
-    vm_free();
-    return result >= 1; // returns 1 if not ERR_OK
+    return 0;
 }
