@@ -1,86 +1,178 @@
+//> Scanning on Demand scanner-c
+#include "../common.h"
 #include "parser.h"
+#include "trie.h"
 
 Scanner scanner;
 
-const char *token_t_strings[] = {
-    "TOKEN_INV", "TOKEN_INT", "TOKEN_FLT", "TOKEN_STR",
-    "TOKEN_OBR", "TOKEN_CBR", "TOKEN_QUO", "TOKEN_SYM",
+Trie* keywords;
+
+const char* token_t_strings[] = {
+    "TOKEN_INV",
+    "TOKEN_INT",
+    "TOKEN_FLT",
+    "TOKEN_STR",
+    "TOKEN_OBR",
+    "TOKEN_CBR",
+    "TOKEN_QUO",
+    "TOKEN_SYM",
+    "TOKEN_IF",
+    "TOKEN_MIN",
+    "TOKEN_ADD",
+    "TOKEN_MUL",
+    "TOKEN_DIV",
+    "TOKEN_MOD",
+    "TOKEN_LET",
+    "TOKEN_DEF",
+    "TOKEN_T",
+    "TOKEN_F",
+    "TOKEN_EOF",
 };
 
-void initScanner(const char* source) {
-    scanner.col = 0;
-    scanner.row = 1;
-    scanner.current = source;
+void init_keywords() {
+    keywords = trie_new_node();
+    trie_insert(keywords, "if",     TOKEN_IF);
+    trie_insert(keywords, "let",    TOKEN_LET);
+    trie_insert(keywords, "define", TOKEN_IF);
+    trie_insert(keywords, "quote",  TOKEN_QUO);
+}
+
+void init_scanner(const char* source) {
+    init_keywords();
     scanner.start = source;
+    scanner.current = source;
+    scanner.row = 1;
+    scanner.col = 0;
+}
+
+void print_token(Token token) {
+    printf("[%d:%d] %s: %.*s\n",
+           token.row,
+           token.col,
+           token_t_strings[token.type],
+           token.length,
+           token.start);
+}
+
+static bool is_char(char c) {
+    return (c >= 'a' && c <= 'z') ||
+        (c >= 'A' && c <= 'Z') ||
+        c == '_';
+}
+
+static bool is_digit(char c) {
+    return c >= '0' && c <= '9';
+}
+
+static bool is_end() {
+    return *scanner.current == '\0';
+}
+
+static char advance() {
+    scanner.current++;
+    scanner.col++;
+    return scanner.current[-1];
+}
+
+static char peek() {
+    return *scanner.current;
+}
+
+static char peek_next() {
+    if (is_end()) return '\0';
+    return scanner.current[1];
 }
 
 static Token make_token(Token_t type) {
     Token token;
     token.type = type;
-    token.col = scanner.col;
+    token.start = scanner.start;
+    token.length = (int)(scanner.current - scanner.start);
     token.row = scanner.row;
-    token.start = scanner.current;
-    token.length = (int)(scanner.current -scanner.start);
+    token.col = scanner.col - token.length;
     return token;
 }
 
-static inline bool is_digit(char c) {
-    return c >= '0' && c <= '9';
+static Token invalid_token(const char* message) {
+    Token token;
+    token.type = TOKEN_INV;
+    token.start = message;
+    token.length = (int)strlen(message);
+    token.row = scanner.row;
+    return token;
 }
 
-static inline bool is_op(char c) {
-    return c == '+'
-        || c == '-'
-        || c == '/'
-        || c == '*'
-        || c == '%';
+static void skipWhitespace() {
+    for (;;) {
+        char c = peek();
+        switch (c) {
+        case ' ':
+        case '\r':
+        case '\t':
+            advance();
+            break;
+        case '\n':
+            scanner.row++;
+            advance();
+            break;
+        default:
+            return;
+        }
+    }
 }
 
-static inline bool is_char(char c) {
-    return (c >= 'A' && c <= 'Z')
-        || (c >= 'a' && c <= 'z')
-        || c == '_'
-        || is_op(c);
+static Token number() {
+    Token_t type = TOKEN_INT;
+    while (is_digit(peek())) advance();
+
+    if (peek() == '.' && is_digit(peek_next())) {
+        type = TOKEN_FLT;
+        advance();
+        while (is_digit(peek())) advance();
+    }
+
+    return make_token(type);
+}
+
+static Token string() {
+    while (peek() != '"' && !is_end()) {
+        if (peek() == '\n') scanner.row++;
+        advance();
+    }
+
+    if (is_end()) return invalid_token("Unterminated string.");
+    advance();
+    return make_token(TOKEN_STR);
+}
+
+static Token_t identifier_type() {
+    int length = scanner.current - scanner.start;
+    char str[length];
+    strncpy(str, scanner.start, length);
+    return trie_get_token(keywords, str);
+}
+
+static Token identifier() {
+    while (is_char(peek()) || is_digit(peek())) {
+        advance();
+    }
+    return make_token(identifier_type());
 }
 
 Token scan_token() {
-    while(*scanner.current != '\0') {
-        if (peek(scanner.current) == ' ') {
-            scanner.current++;
-            scanner.col++;
-            continue;
-        }
-        if (peek(scanner.current) == '\n') {
-            scanner.current++;
-            scanner.col++;
-            scanner.row++;
-            continue;
-        }
-        if (peek(scanner.current) == '\'') {
-            scanner.current++;
-            scanner.col++;
-            return make_token(TOKEN_QUO);
-        }
-        if (peek(scanner.current) == '+') {
-            scanner.current++;
-            scanner.col;
-        }
-        if (is_digit(peek(scanner.current))) {
-            Token_t type = TOKEN_INT;
-            while (is_digit(peek(scanner.current)) || peek(scanner.current) == '.') {
-                const char* next = scanner.current + 1;
-                if (peek(scanner.current) == '.') {
-                    if (!is_digit(*next)) {
-                        type = TOKEN_INV;
-                    } else {
-                        type = TOKEN_FLT;
-                    }
-                }
-                scanner.col++;
-            }
-            return make_token(type);
-        }
-        return make_token(TOKEN_INT);
+    skipWhitespace();
+    scanner.start = scanner.current;
+
+    if (is_end()) return make_token(TOKEN_EOF);
+    char c = advance();
+    if (is_digit(c)) return number();
+    if (is_char(c)) return identifier();
+    switch (c) {
+    case '(':  return make_token(TOKEN_OBR);
+    case ')':  return make_token(TOKEN_CBR);
+    case '\'': return make_token(TOKEN_QUO);
+    case '+':  return make_token(TOKEN_ADD);
+    case '"':  return string();
     }
-    return (Token){};
+    return invalid_token("Unexpected character.");
 }

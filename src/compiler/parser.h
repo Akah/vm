@@ -1,14 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "../common.h"
-
-#define as_string(c) (char[]){c, '\0'}
-
-#define peek(string) *string
-
-#define consume(string) *(*string)++
-
 typedef struct {
     int row;
     int col;
@@ -25,40 +17,33 @@ typedef enum {
     TOKEN_CBR,
     TOKEN_QUO,
     TOKEN_SYM,
+    TOKEN_IF,
+    TOKEN_MIN,
+    TOKEN_ADD,
+    TOKEN_MUL,
+    TOKEN_DIV,
+    TOKEN_MOD,
+    TOKEN_LET,
+    TOKEN_DEF,
+    TOKEN_T,
+    TOKEN_F,
+    TOKEN_EOF,
 } Token_t;
 
 typedef struct {
     Token_t type;
+    const char* start;
+    int length;
     int row;
     int col;
-    int length;
-    const char* start;
 } Token;
-
-typedef struct Node{
-    Token token;
-    struct Node* next;
-    struct Node* prev;
-} Node;
-
-typedef struct {
-    size_t length;
-    Node* head;
-    Node* last;
-} Token_List;
 
 extern const char *token_t_strings[];
 
-void initScanner(const char* source);
-
-void token_list_init(Token_List* tokens);
-
-void token_list_free(Token_List* tokens);
-
-void token_init(Token* token);
-
-void token_free(Token* token);
+void init_scanner(const char* source);
 
 Token scan_token();
+
+void print_token(Token token);
 
 #endif

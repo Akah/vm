@@ -2,9 +2,10 @@
 #include "parser.h"
 
 void compile(const char* source) {
-    initScanner(source);
-    for (int i=0; i<100; i++) {
+    init_scanner(source);
+    for (;;) {
         Token token = scan_token();
-        printf("%s\n", token_t_strings[token.type]);
+        print_token(token);
+        if (token.type == TOKEN_EOF) break;
     }
 }
