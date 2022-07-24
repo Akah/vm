@@ -7,26 +7,11 @@ Scanner scanner;
 
 Trie* keywords;
 
-const char* token_t_strings[] = {
-    "TOKEN_INV",
-    "TOKEN_INT",
-    "TOKEN_FLT",
-    "TOKEN_STR",
-    "TOKEN_OBR",
-    "TOKEN_CBR",
-    "TOKEN_QUO",
-    "TOKEN_SYM",
-    "TOKEN_IF",
-    "TOKEN_MIN",
-    "TOKEN_ADD",
-    "TOKEN_MUL",
-    "TOKEN_DIV",
-    "TOKEN_MOD",
-    "TOKEN_LET",
-    "TOKEN_DEF",
-    "TOKEN_T",
-    "TOKEN_F",
-    "TOKEN_EOF",
+const char *token_t_strings[] = {
+    "TOKEN_INV", "TOKEN_INT", "TOKEN_FLT", "TOKEN_STR", "TOKEN_OBR",
+    "TOKEN_CBR", "TOKEN_QUO", "TOKEN_SYM", "TOKEN_IF",  "TOKEN_MIN",
+    "TOKEN_ADD", "TOKEN_MUL", "TOKEN_DIV", "TOKEN_MOD", "TOKEN_LET",
+    "TOKEN_DEF", "TOKEN_T",   "TOKEN_F",   "TOKEN_EOF",
 };
 
 void init_keywords() {
@@ -60,30 +45,30 @@ static bool is_char(char c) {
         c == '_';
 }
 
-static bool is_digit(char c) {
+static inline bool is_digit(char c) {
     return c >= '0' && c <= '9';
 }
 
-static bool is_end() {
+static inline bool is_end() {
     return *scanner.current == '\0';
 }
 
-static char advance() {
+static inline char advance() {
     scanner.current++;
     scanner.col++;
     return scanner.current[-1];
 }
 
-static char peek() {
+static inline char peek() {
     return *scanner.current;
 }
 
-static char peek_next() {
+static inline char peek_next() {
     if (is_end()) return '\0';
     return scanner.current[1];
 }
 
-static Token make_token(Token_t type) {
+static inline Token make_token(Token_t type) {
     Token token;
     token.type = type;
     token.start = scanner.start;
@@ -93,16 +78,17 @@ static Token make_token(Token_t type) {
     return token;
 }
 
-static Token invalid_token(const char* message) {
+static inline Token invalid_token(const char* message) {
     Token token;
     token.type = TOKEN_INV;
     token.start = message;
     token.length = (int)strlen(message);
     token.row = scanner.row;
+    token.col = scanner.col;
     return token;
 }
 
-static void skipWhitespace() {
+static inline void skipWhitespace() {
     for (;;) {
         char c = peek();
         switch (c) {
@@ -121,7 +107,7 @@ static void skipWhitespace() {
     }
 }
 
-static Token number() {
+static inline Token number() {
     Token_t type = TOKEN_INT;
     while (is_digit(peek())) advance();
 
@@ -134,7 +120,7 @@ static Token number() {
     return make_token(type);
 }
 
-static Token string() {
+static inline Token string() {
     while (peek() != '"' && !is_end()) {
         if (peek() == '\n') scanner.row++;
         advance();
@@ -145,14 +131,14 @@ static Token string() {
     return make_token(TOKEN_STR);
 }
 
-static Token_t identifier_type() {
+static inline Token_t identifier_type() {
     int length = scanner.current - scanner.start;
     char str[length];
     strncpy(str, scanner.start, length);
     return trie_get_token(keywords, str);
 }
 
-static Token identifier() {
+static inline Token identifier() {
     while (is_char(peek()) || is_digit(peek())) {
         advance();
     }
@@ -174,5 +160,5 @@ Token scan_token() {
     case '+':  return make_token(TOKEN_ADD);
     case '"':  return string();
     }
-    return invalid_token("Unexpected character.");
+    return invalid_token("Unexpected character");
 }
