@@ -3,7 +3,7 @@
 #include "debug.h"
 #include "value.h"
 #include "vm.h"
-#include <stdint.h>
+#include "../compiler/compiler.h"
 
 #define DEBUG_TRACE_EXECUTION
 
@@ -171,8 +171,23 @@ const char* InterpretResult_to_string(InterpretResult result) {
     }
 }
 
-InterpretResult interpret(Chunk* chunk) {
-    vm.chunk = chunk;
+InterpretResult interpret(const char* source) {
+    /* to test lexer run: */
+    /* compile(source); */
+    /* return ERR_OK; */
+    Chunk chunk;
+    init_chunk(&chunk);
+
+    if (!compile(source, &chunk)) {
+        free_chunk(&chunk);
+        return ERR_COMPILE_ERROR;
+    }
+
+    vm.chunk = &chunk;
     vm.ip = vm.chunk->code;
-    return run();
+
+    InterpretResult result = run();
+
+    free_chunk(&chunk);
+    return result;
 }

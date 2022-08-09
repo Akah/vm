@@ -14,12 +14,15 @@ const char *token_t_strings[] = {
     "TOKEN_DEF", "TOKEN_T",   "TOKEN_F",   "TOKEN_EOF",
 };
 
+// define keywords
 void init_keywords() {
+#define K(form, token) (trie_insert(keywords, form, token))
     keywords = trie_new_node();
-    trie_insert(keywords, "if",     TOKEN_IF);
-    trie_insert(keywords, "let",    TOKEN_LET);
-    trie_insert(keywords, "define", TOKEN_IF);
-    trie_insert(keywords, "quote",  TOKEN_QUO);
+    K("if",     TOKEN_IF);
+    K("let",    TOKEN_LET);
+    K("define", TOKEN_IF);
+    K("quote",  TOKEN_QUO);
+#undef K
 }
 
 void init_scanner(const char* source) {
@@ -88,7 +91,7 @@ static inline Token invalid_token(const char* message) {
     return token;
 }
 
-static inline void skipWhitespace() {
+static inline void handle_whitespace() {
     for (;;) {
         char c = peek();
         switch (c) {
@@ -100,6 +103,7 @@ static inline void skipWhitespace() {
         case '\n':
             scanner.row++;
             advance();
+            scanner.col = 0;
             break;
         default:
             return;
@@ -146,13 +150,18 @@ static inline Token identifier() {
 }
 
 Token scan_token() {
-    skipWhitespace();
+    handle_whitespace();
     scanner.start = scanner.current;
 
-    if (is_end()) return make_token(TOKEN_EOF);
+    if (is_end())
+        return make_token(TOKEN_EOF);
+
     char c = advance();
-    if (is_digit(c)) return number();
-    if (is_char(c)) return identifier();
+    if (is_digit(c))
+        return number();
+    if (is_char(c))
+        return identifier();
+
     switch (c) {
     case '(':  return make_token(TOKEN_OBR);
     case ')':  return make_token(TOKEN_CBR);
@@ -160,5 +169,6 @@ Token scan_token() {
     case '+':  return make_token(TOKEN_ADD);
     case '"':  return string();
     }
+
     return invalid_token("Unexpected character");
 }
