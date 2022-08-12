@@ -11,7 +11,8 @@ const char *token_t_strings[] = {
     "TOKEN_INV", "TOKEN_INT", "TOKEN_FLT", "TOKEN_STR", "TOKEN_OBR",
     "TOKEN_CBR", "TOKEN_QUO", "TOKEN_SYM", "TOKEN_IF",  "TOKEN_MIN",
     "TOKEN_ADD", "TOKEN_MUL", "TOKEN_DIV", "TOKEN_MOD", "TOKEN_LET",
-    "TOKEN_DEF", "TOKEN_T",   "TOKEN_F",   "TOKEN_EOF",
+    "TOKEN_DEF", "TOKEN_LTE", "TOKEN_GTE", "TOKEN_LT",  "TOKEN_GT",
+    "TOKEN_T",   "TOKEN_F",   "TOKEN_EOF",
 };
 
 // define keywords
@@ -153,8 +154,10 @@ Token scan_token() {
     handle_whitespace();
     scanner.start = scanner.current;
 
-    if (is_end())
+    if (is_end()) {
+        printf("should return eof %d\n", TOKEN_EOF);
         return make_token(TOKEN_EOF);
+    }
 
     char c = advance();
     if (is_digit(c))
@@ -162,11 +165,33 @@ Token scan_token() {
     if (is_char(c))
         return identifier();
 
+    printf("%c\n", c);
+    if (c == '<') {
+        puts("here");
+        if (peek() == '=') {
+            advance();
+            return make_token(TOKEN_LTE);
+        }
+        puts("here2");
+        return make_token(TOKEN_LT);
+    }
+
+    if (c == '>') {
+        if (peek() == '=') {
+            advance();
+            return make_token(TOKEN_GTE);
+        }
+        return make_token(TOKEN_GT);
+    }
+
     switch (c) {
     case '(':  return make_token(TOKEN_OBR);
     case ')':  return make_token(TOKEN_CBR);
     case '\'': return make_token(TOKEN_QUO);
     case '+':  return make_token(TOKEN_ADD);
+    case '-':  return make_token(TOKEN_MIN);
+    case '*':  return make_token(TOKEN_MUL);
+    case '/':  return make_token(TOKEN_DIV);
     case '"':  return string();
     }
 

@@ -25,8 +25,8 @@ static InterpretResult run() {
 #define BINARY_OP(op)                           \
     do {                                        \
         CHECK_UNDERFLOW(2);                     \
-        double a = stack_pop();                 \
         double b = stack_pop();                 \
+        double a = stack_pop();                 \
         CHECK_OVERFLOW();                       \
         stack_push(a op b);                     \
     } while (false);
