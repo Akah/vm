@@ -116,14 +116,18 @@ static void binary() {
     case TOKEN_DIV:
         emit_byte_n_times(OP_DIV, params);
         break;
-    /* case TOKEN_LT: */
-    /*     emit_byte_n_times(OP_LESS, params); */
-    /* case TOKEN_LTE: */
-    /*     emit_byte_n_times(OP_LESS_EQ, params); */
-    /* case TOKEN_GT: */
-    /*     emit_byte_n_times(OP_GREATER, params); */
-    /* case TOKEN_GTE: */
-    /*     emit_byte_n_times(OP_GREATER_EQ, params); */
+    case TOKEN_LT:
+        emit_byte_n_times(OP_LESS, params);
+        break;
+    case TOKEN_LTE:
+        emit_byte_n_times(OP_LESS_EQ, params);
+        break;
+    case TOKEN_GT:
+        emit_byte_n_times(OP_GREATER, params);
+        break;
+    case TOKEN_GTE:
+        emit_byte_n_times(OP_GREATER_EQ, params);
+        break;
     default:
         puts("was something else");
         return;

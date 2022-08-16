@@ -10,6 +10,7 @@
 VM vm;
 
 static InterpretResult run() {
+    disassemble_chunk(vm.chunk, "here");
 #define CHECK_OVERFLOW()                                \
     ({                                                  \
         if ((vm.stack_top - vm.stack) >= STACK_CAP)     \
@@ -23,13 +24,13 @@ static InterpretResult run() {
 #define READ_BYTE() (*vm.ip++)
 #define READ_OPERAND() (vm.chunk->constants.values[READ_BYTE()])
 #define BINARY_OP(op)                           \
-    do {                                        \
+    ({                                          \
         CHECK_UNDERFLOW(2);                     \
         double b = stack_pop();                 \
         double a = stack_pop();                 \
         CHECK_OVERFLOW();                       \
         stack_push(a op b);                     \
-    } while (false);
+    })
 
     if (vm.chunk->count == 0) {
         printf("Error: chunk was empty\n");

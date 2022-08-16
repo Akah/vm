@@ -150,39 +150,41 @@ static inline Token identifier() {
     return make_token(identifier_type());
 }
 
+static inline Token less_than() {
+    if (peek() == '=') {
+        advance();
+        return make_token(TOKEN_LTE);
+    }
+    return make_token(TOKEN_LT);
+}
+
+static inline Token more_than() {
+    if (peek() == '=') {
+        advance();
+        return make_token(TOKEN_GTE);
+    }
+    return make_token(TOKEN_GT);
+}
+
 Token scan_token() {
     handle_whitespace();
     scanner.start = scanner.current;
 
-    if (is_end()) {
-        printf("should return eof %d\n", TOKEN_EOF);
+    if (is_end())
         return make_token(TOKEN_EOF);
-    }
 
     char c = advance();
     if (is_digit(c))
         return number();
+
     if (is_char(c))
         return identifier();
 
-    printf("%c\n", c);
-    if (c == '<') {
-        puts("here");
-        if (peek() == '=') {
-            advance();
-            return make_token(TOKEN_LTE);
-        }
-        puts("here2");
-        return make_token(TOKEN_LT);
-    }
+    if (c == '<')// including <=
+        return less_than();
 
-    if (c == '>') {
-        if (peek() == '=') {
-            advance();
-            return make_token(TOKEN_GTE);
-        }
-        return make_token(TOKEN_GT);
-    }
+    if (c == '>') // including >=
+        return more_than();
 
     switch (c) {
     case '(':  return make_token(TOKEN_OBR);
