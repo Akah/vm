@@ -99,16 +99,15 @@ static ParseRule get_rule(Token_t type);
 
 static int parse();
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
 static void binary() {
     Token_t op_type = parser.current.type;
     int params = parse();
-
     switch (op_type) {
     case TOKEN_ADD:
-        emit_byte_n_times(OP_ADD, params);
         break;
     case TOKEN_MIN:
-        emit_byte_n_times(OP_SUB, params);
         break;
     case TOKEN_MUL:
         emit_byte_n_times(OP_MUL, params);
@@ -133,6 +132,7 @@ static void binary() {
         return;
     }
 }
+#pragma GCC diagnostic pop
 
 static void number() {
     double value = strtod(parser.current.start, NULL);
@@ -159,9 +159,12 @@ static void expression() {
     parse();
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static void not_implemented() {
     error_at_current("No parse rule implemented for token");
 }
+#pragma GCC diagnostic pop
 
 // parens:
 static void grouping() {
