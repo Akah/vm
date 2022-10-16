@@ -1,8 +1,15 @@
+/* Known bugs:
+ * - if stack is empty then program just quits even when operations are
+ *   still to be executed. Should cause underflow error
+ *
+ * - CURRENT:
+ *   'counter' is overridden during sub evaluations e.g: (+ (+ 1 1) 1).
+ *   should be 2 params but only has one because of end;
+ */
+
 #include "../common.h"
 #include "compiler.h"
 #include "parser.h"
-#include <stdint.h>
-#include <stdlib.h>
 
 typedef void (*ParseRule)();
 
@@ -38,15 +45,15 @@ static void error(const char *message) {
     error_at(&parser.previous, message);
 }
 
-
 static void advance() {
     parser.previous = parser.current;
 
     for (;;) {
         parser.current = scan_token();
         if (parser.current.type == TOKEN_INV) break;
-
+        puts("advance error:");
         error_at_current(parser.current.start);
+        exit(1);
     }
 }
 
@@ -55,6 +62,7 @@ static void consume(Token_t type, const char* message) {
         advance();
         return;
     }
+    puts("consume error:");
     error_at_current(message);
 }
 
@@ -104,10 +112,18 @@ static int parse();
 static void binary() {
     Token_t op_type = parser.current.type;
     int params = parse();
+    printf("had %d params\n", params);
+    /* printf("    previous -> "); */
+    /* print_token(parser.previous); */
+    /* printf("    next     -> "); */
+    /* print_token(parser.previous); */
+
     switch (op_type) {
     case TOKEN_ADD:
+        emit_byte_n_times(OP_ADD, params);
         break;
     case TOKEN_MIN:
+        emit_byte_n_times(OP_SUB, params);
         break;
     case TOKEN_MUL:
         emit_byte_n_times(OP_MUL, params);
@@ -139,38 +155,58 @@ static void number() {
     emit_constant(value);
 }
 
-static int parse() {
-    for (int counter = 0;;counter++) {
+int parse() {
+    int counter = 0;
+    for (;;++counter) {
         parser.previous = parser.current;
         Token token = scan_token();
         parser.current = token;
         print_token(token);
 
         if (token.type == TOKEN_EOF)
+            return 0; // counter;
+
+        if (token.type == TOKEN_CBR)
             return counter;
 
-        get_rule(token.type)();
+        ParseRule rule = get_rule(token.type);
+        // call rule
+
+        if (rule) {
+            /* puts("had rule"); */
+            rule();
+        } else {
+            /* puts("null rule"); */
+        }
     }
-    return 0;
+    return counter;
 }
 
 static void expression() {
     //
+    puts("expression");
     parse();
 }
 
+// parens:
+static void grouping() {
+    // assert first value is operator (or function)
+    /* puts("grouping"); */
+    /* // consume(TOKEN_OBR, "Must start with bracket"); */
+    /* printf("is op? ->"); */
+    /* print_token(parser.current); */
+    puts("grouping");
+    parse();
+}
+
+// used for non-implemented functions
+// sometimes not eneeded hence the pragmas
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 static void not_implemented() {
     error_at_current("No parse rule implemented for token");
 }
 #pragma GCC diagnostic pop
-
-// parens:
-static void grouping() {
-    expression();
-    consume(TOKEN_CBR, "Expect ')' after expession.");
-}
 
 ParseRule rules[] = {
     [TOKEN_OBR] = grouping,
